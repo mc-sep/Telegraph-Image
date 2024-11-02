@@ -1,183 +1,418 @@
-# Telegraph-Image
+# CloudFlare-ImgBed
 
-免费图片托管解决方案，Flickr/imgur 替代品。使用 Cloudflare Pages 和 Telegraph。
+免费图片托管解决方案，基于 Cloudflare Pages 和 Telegram （文件大小不超过20MB，过大图片会**自动压缩**）。
 
-[English](README-EN.md)|中文
+**体验地址**：[Sanyue ImgHub (demo-cloudflare-imgbed.pages.dev)](https://demo-cloudflare-imgbed.pages.dev/)
 
+> 访问码：cfbed
+>
 
-## 如何部署
+**体验视频**：[CloudFlare免费图床，轻松守护你的每一份精彩！_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1y3WGe4EGh/?vd_source=da5ecbe595e41089cd1bed95932b8bfd)
 
-### 提前准备
+**相关优质博文（感谢每一位鼎力支持的热心大佬）：**
 
-你唯一需要提前准备的就是一个 Cloudflare 账户 （如果需要在自己的服务器上部署，不依赖 Cloudflare，可参考[#46](https://github.com/cf-pages/Telegraph-Image/issues/46) ）
+- [完全免费，图文教程手把手教你使用cloudflare搭建一个无限空间的私人图床 支持身份认证与成人元素鉴定！ - yunsen2025的小窝](https://www.yunsen2025.top/archives/265)
+- [利用cloudflare pages搭建telegram频道图床 (lepidus.me)](https://blogstr.lepidus.me/post/1725801323700/)
+- [搭建基于CloudFlare和Telegram的免费图床教程 - 刘学馆 | Blog (sexy0769.com)](https://blog.sexy0769.com/skill/735.html)
+- [CloudFlare+Github，打造属于自己的免费图床 - 大头钉的小小blog (luckyting.top)](https://luckyting.top/index.php/archives/20/)
 
-### 手把手教程
+**前端仓库**：[MarSeventh/Sanyue-ImgHub](https://github.com/MarSeventh/Sanyue-ImgHub)
 
-简单 3 步，即可部署本项目，拥有自己的图床
+**注意**：本仓库为[Telegraph-Image](https://github.com/cf-pages/Telegraph-Image)项目的重制版，如果你觉得本项目不错，在支持本项目的同时，也请支持原项目。
 
-1.Fork 本仓库 (注意：必须使用 Git 或者 Wrangler 命令行工具部署后才能正常使用，[文档](https://developers.cloudflare.com/pages/functions/get-started/#deploy-your-function))
+> [!IMPORTANT]
+>
+> 由于telegraph图床被滥用，该项目上传渠道已切换至Telegram Channel，请**更新至最新版（更新方式见第3.1章最后一节）**，按照文档中的部署要求**设置`TG_BOT_TOKEN`和`TG_CHAT_ID`**，否则将无法正常使用上传功能。
+>
+> 此外，目前**KV数据库为必须配置**，如果以前未配置请按照文档说明配置。
+>
+> 出现问题，请先查看第5节常见问题Q&A部分。
 
-2.打开 Cloudflare Dashboard，进入 Pages 管理页面，选择创建项目，选择`连接到 Git 提供程序`
+## 1.Introduction
 
-![1](https://telegraph-image.pages.dev/file/8d4ef9b7761a25821d9c2.png)
+免费图片托管解决方案（支持存储绝大多数常见格式的**图片、视频、动图**等），具有**后台管理、图片审查**、**登录鉴权**、**页面自定义**、**多种方式及多文件上传**、**多文件及多格式链接复制**等功能（详见[第2章](#2.Features))。
 
-3. 按照页面提示输入项目名称，选择需要连接的 git 仓库，点击`部署站点`即可完成部署
+此外，拖拽上传的方式**并没有严格限制文件类型**，理论上你可以上传**任何**不超过20MB的文件，但是暂时不会针对图片和视频外的文件进行特殊优化和适配。
 
-## 特性
+![CloudFlare](https://alist.sanyue.site/d/imgbed/202410011443570.png)
 
-1.无限图片储存数量，你可以上传不限数量的图片
+## 2.Features
 
-2.无需购买服务器，托管于 Cloudflare 的网络上，当使用量不超过 Cloudflare 的免费额度时，完全免费
+- **开源**
+  - 前端开源（可自行修改、打包使用）
 
-3.无需购买域名，可以使用 Cloudflare Pages 提供的`*.pages.dev`的免费二级域名，同时也支持绑定自定义域名
+- **炫酷的动效（**
+  - 流畅丝滑的过渡动画~
+  - 上传文件实现呼吸灯效果
+  
+- **人性化上传**
+  
+  - 支持绝大多数常见**图片、视频、动图**等
+  - 支持多种上传方式（**拖拽点击、粘贴**）
+  - 粘贴上传支持**文件**和**URL**
+  - 支持批量上传（不限同时选择文件数量，但为了保证稳定性，同时处于上传状态的文件最多为10个）
+  - 上传显示实时上传进度
+  - **上传后图片无需手动点击，可直接展示在管理页面中**
+  - **过大图片在前端进行压缩，提升上传稳定性和加载性能**
+  - 支持自定义压缩质量，自定义开启前后端压缩功能
+  
+- **多样化复制**
 
-4.支持图片审查 API，可根据需要开启，开启后不良图片将自动屏蔽，不再加载
+  - 支持**整体复制**和**单独复制**（整体复制即将所有链接通过换行串联起来后复制）
+  - 支持**MarkDown、HTML、BBCode和原始链接**四种格式复制
+  - 上传完成后直观展示四种格式链接
 
-5.支持后台图片管理，可以对上传的图片进行在线预览，添加白名单，黑名单等操作
+- **支持身份认证、防滥用**
+  - 支持Web和API**上传认证**（感谢[hl128k](https://github.com/hl128k)）
+  - 支持访问域名限制（感谢[hl128k](https://github.com/hl128k)）
+  - 支持上传IP统计
+  
+- **支持页面自定义**
+  - 页面背景支持**单图**、**自定义多图轮播**、**bing随机图轮播**等多种模式
+  - 自定义图床名称和Logo
+  - 自定义网站标题和Icon
 
-### 绑定自定义域名
+- **一些小功能**
+  - 支持**随机图**API，从图床中随机返回一张图片
 
-在 pages 的自定义域里面，绑定 cloudflare 中存在的域名，在 cloudflare 托管的域名，自动会修改 dns 记录
-![2](https://telegraph-image.pages.dev/file/29546e3a7465a01281ee2.png)
+- **以及原版所有特性**
 
-### 开启图片审查
+  > 1.**无限图片储存数量**，你可以上传不限数量的图片
+  >
+  > 2.无需购买服务器，托管于 Cloudflare 的网络上，当使用量不超过 Cloudflare 的免费额度时，完全免费
+  >
+  > 3.无需购买域名，可以使用 Cloudflare Pages 提供的`*.pages.dev`的免费二级域名，同时也支持绑定自定义域名
+  >
+  > 4.支持**图片审查** API，可根据需要开启，开启后不良图片将自动屏蔽，不再加载
+  >
+  > 5.支持**后台图片管理**，可以对上传的图片进行在线预览，添加白名单，黑名单等操作
 
-1.请前往https://moderatecontent.com/ 注册并获得一个免费的用于审查图像内容的 API key
 
-2.打开 Cloudflare Pages 的管理页面，依次点击`设置`，`环境变量`，`添加环境变量`
+## 3.Deployment
 
-3.添加一个`变量名称`为`ModerateContentApiKey`，`值`为你刚刚第一步获得的`API key`，点击`保存`即可
+### 3.1直接使用
 
-注意：由于所做的更改将在下次部署时生效，你或许还需要进入`部署`页面，重新部署一下该本项目
+**注意修改完环境变量，重新部署才能生效**，见[3.1章最后一节](#3.1.11注意！！！)
 
-开启图片审查后，因为审查需要时间，首次的图片加载将会变得缓慢，之后的图片加载由于存在缓存，并不会受到影响
-![3](https://telegraph-image.pages.dev/file/bae511fb116b034ef9c14.png)
+**版本更新方式**，也请见[3.1章最后一节](#3.1.11注意！！！)
 
-### 限制
+#### 3.1.1提前准备
 
-1.由于图片文件实际存储于 Telegraph，Telegraph 限制上传的图片大小最大为 5MB
+- **Telegram的`TG_BOT_TOKEN`和`TG_CHAT_ID`**
 
-2.由于使用 Cloudflare 的网络，图片的加载速度在某些地区可能得不到保证
+  首先需要拥有一个Telegram账户，然后按照以下步骤获取`TG_BOT_TOKEN`和`TG_CHAT_ID`。
 
-3.Cloudflare Function 免费版每日限制 100,000 个请求（即上传或是加载图片的总次数不能超过 100,000 次）如超过可能需要选择购买 Cloudflare Function 的付费套餐，如开启图片管理功能还会存在 KV 操作数量的限制，如超过需购买付费套餐
+  1. 向[@BotFather](https://t.me/BotFather)发送`/newbot`，按照提示输入bot的备注、用户名等信息。成功创建后获得`TG_BOT_TOKEN`。
 
-### 感谢
+     ![](https://alist.sanyue.site/d/imgbed/202409071744569.png)
 
-Hostloc @feixiang 和@乌拉擦 提供的思路和代码
+  2. 创建一个新的频道（Channel），进入新建的频道，选择频道管理，将刚才创建的机器人设为频道管理员。
 
-## 更新日志
-2024 年 7 月 6 日--后台管理页面更新
+     ![](https://alist.sanyue.site/d/imgbed/202409071758534.png)
 
-- 支持两个新的管理页面视图（网格视图和瀑布流）
+     ![](https://alist.sanyue.site/d/imgbed/202409071758796.png)
 
-    1、网格视图，感谢@DJChanahCJD 提交的代码
-        支持批量删除/复制链接
-        支持按时间倒序排序
-        支持分页功能
-        ![](https://camo.githubusercontent.com/a0551aa92f39517f0b30d86883882c1af4c9b3486e540c7750af4dbe707371fa/68747470733a2f2f696d6774632d3369312e70616765732e6465762f66696c652f6262616438336561616630356635333731363237322e706e67)
-    2、瀑布流视图，感谢@panther125 提交的代码
-        ![](https://camo.githubusercontent.com/63d64491afc5654186248141bd343c363808bf8a77d3b879ffc1b8e57e5ac85d/68747470733a2f2f696d6167652e67696e636f64652e6963752f66696c652f3930346435373737613363306530613936623963642e706e67)
+     ![](https://alist.sanyue.site/d/imgbed/202410291531473.png)
 
-- 添加自动更新支持
+  3. 向[@VersaToolsBot](https://t.me/VersaToolsBot)**转发**一条第2步新建频道中的消息，获取`TG_CHAT_ID`（频道ID）
 
-    现在fork的项目能够自动和上游仓库同步最新的更改，自动实装最新的项目功能，感谢 @bian2022
+     ![](https://alist.sanyue.site/d/imgbed/202409071751619.png)
 
-    打开自动更新步骤：
-        当你 fork 项目之后，由于 Github 的限制，需要手动去你 fork 后的项目的 Actions 页面启用 Workflows，并启用 Upstream Sync Action，启用之后即可开启每小时定时自动更新：
-        ![](https://im.gurl.eu.org/file/f27ff07538de656844923.png)
-        ![](https://im.gurl.eu.org/file/063b360119211c9b984c0.png)
-    `如果你遇到了 Upstream Sync 执行错误，请手动 Sync Fork 一次！`
+- **部署于Cloudflare**
 
-    手动更新代码
+  需准备一个**Cloudflare账户**，然后按照[3.1.2.1节](#3.1.2.1部署于Cloudflare)的步骤即可完成部署。
 
-    如果你想让手动立即更新，可以查看 [Github 的文档](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) 了解如何让 fork 的项目与上游代码同步。
+- **部署于服务器**
 
-    你可以 star/watch 本项目或者 follow 作者来及时获得新功能更新通知。
-- 添加远端遥测
+  如果Cloudflare的**有限访问次数**不能满足你的需求，并且你拥有自己的服务器，可以参照[3.1.2.2节](#3.1.2.2部署于服务器)的教程在服务器上模拟Cloudflare的环境，并开放对应的端口访问服务。
 
-    可通过添加`disable_telemetry`环境变量退出遥测
+  注意由于服务器操作系统、硬件版本复杂多样，相关教程**无法确保适合每一位用户**，遇到报错请尽量利用搜索引擎解决，无法解决也可以提issue寻求帮助。
 
-2023 年 1 月 18 日--图片管理功能更新
+#### 3.1.2手把手教程
 
-1、支持图片管理功能，默认是关闭的，如需开启请部署完成后前往后台依次点击`设置`->`函数`->`KV 命名空间绑定`->`编辑绑定`->`变量名称`填写：`img_url` `KV 命名空间` 选择你提前创建好的 KV 储存空间，开启后访问 http(s)://你的域名/admin 即可打开后台管理页面
-| 变量名称 | KV 命名空间 |
-| ----------- | ----------- |
-| img_url | 选择提前创建好的 KV 储存空间 |
+##### 3.1.2.1部署于Cloudflare
 
-![](https://im.gurl.eu.org/file/a0c212d5dfb61f3652d07.png)
-![](https://im.gurl.eu.org/file/48b9316ed018b2cb67cf4.png)
+依托于CF的强大能力，只需简单几步，即可部署本项目，拥有自己的图床。
 
-2、后台管理页面新增登录验证功能，默认也是关闭的，如需开启请部署完成后前往后台依次点击`设置`->`环境变量`->`为生产环境定义变量`->`编辑变量` 添加如下表格所示的变量即可开启登录验证
-| 变量名称 | 值 |
-| ----------- | ----------- |
-|BASIC_USER = | <后台管理页面登录用户名称>|
-|BASIC_PASS = | <后台管理页面登录用户密码>|
+1. Fork 本仓库
 
-![](https://im.gurl.eu.org/file/dff376498ac87cdb78071.png)
+2. 打开 Cloudflare Dashboard，进入 Pages 管理页面，选择创建项目，选择`连接到 Git 提供程序`
 
-当然你也可以不设置这两个值，这样访问后台管理页面时将无需验证，直接跳过登录步骤，这一设计使得你可以结合 Cloudflare Access 进行使用，实现支持邮件验证码登录，Microsoft 账户登录，Github 账户登录等功能，能够与你域名上原有的登录方式所集成，无需再次记忆多一组后台的账号密码，添加 Cloudflare Access 的方式请参考官方文档，注意需要保护路径包括/admin 以及 /api/manage/\*
+![1](https://alist.sanyue.site/d/imgbed/202407201047300.png)
 
-3、新增图片总数量统计
-当开启图片管理功能后，可在后台顶部查看记录中的图片数量
+3. 按照页面提示输入项目名称，选择需要连接的 git 仓库，点击`部署站点`
 
-![](https://im.gurl.eu.org/file/b7a37c08dc2c504199824.png)
+3. 将3.1.1中获取的`TG_BOT_TOKEN`和`TG_CHAT_ID`分别添加到环境变量中，对应**环境变量名为`TG_BOT_TOKEN`和`TG_CHAT_ID`**
 
-4、新增图片文件名搜索
-当开启图片管理功能后，可在后台搜索框使用图片文件名称，快速搜索定位需要管理的图片
+3. **绑定KV数据库**：
 
-![](https://im.gurl.eu.org/file/faf6d59a7d4a48a555491.png)
+   - 创建一个新的KV数据库
 
-5、新增图片状态显示
-当开启图片管理功能后，可在后台查看图片当前的状态{ "ListType": "None", "TimeStamp": 1673984678274 }
-ListType 代表图片当前是否在黑白名单当中，None 则表示既不在黑名单中也不在白名单中，White 表示在在白名单中，Block 表示在黑名单中，TimeStamp 为图片首次加载的时间戳，如开启的图片审查 API，则这里还会显示图片审查的结果用 Label 标识
+     > ![](https://alist.sanyue.site/d/imgbed/202408261035367.png)
+     >
+     > ![](https://alist.sanyue.site/d/imgbed/202408261037971.png)
 
-![](https://im.gurl.eu.org/file/6aab78b83bbd8c249ee29.png)
+   - 进入项目对应`设置`->`函数`->`KV 命名空间绑定`->`编辑绑定`->`变量名称`，填写`img_url`，KV命名空间选择刚才创建好的KV数据库
 
-6、新增黑名单功能
-当开启图片管理功能后，可在后台手动为图片加入黑名单，加入黑名单的图片将无法正常加载
+3. `重试部署`，此时项目即可正常使用
 
-![](https://im.gurl.eu.org/file/fb18ef006a23677a52dfe.png)
+##### 3.1.2.2部署于服务器
 
-7、新增白名单功能
-当开启图片管理功能后，可在后台手动为图片加入白名单，加入白名单的图片无论如何都会正常加载，可绕过图片审查 API 的结果
+1. 安装服务器操作系统对应的`node.js`，经测试`v22.5.1`版本可以正常使用。（安装教程自行search）
 
-![](https://im.gurl.eu.org/file/2193409107d4f2bcd00ee.png)
+2. 切换到项目根目录，运行`npm install`，安装所需依赖。
 
-8、新增记录删除功能
-当开启图片管理功能后，可在后台手动删除图片记录，即不再后台显示该图片，除非有人再次上传并加载该图片，注意由于图片储存在 telegraph 的服务器上，我们无法删除上传的原始图片，只能通过上述第 6 点的黑名单功能屏蔽图片的加载
+3. 在项目根目录下新建`wrangler.toml`配置文件，其内容为项目名称，环境变量（**包括`TG_BOT_TOKEN`和`TG_CHAT_ID`等必填参数**）等，可根据后文环境变量配置进行个性化修改。（详情参见官方文档[Configuration - Wrangler (cloudflare.com)](https://developers.cloudflare.com/workers/wrangler/configuration/)）
 
-9、新增程序运行模式：白名单模式
-当开启图片管理功能后，除了默认模式外，这次更新还新增了一项新的运行模式，在该模式下，只有被添加进白名单的图片才会被加载，上传的图片需要审核通过后才能展示，最大程度的防止不良图片的加载，如需开启请设置环境变量：WhiteList_Mode=="true"
+   > 配置文件样例：
+   >
+   > ```toml
+   > name = "cloudflare-imgbed"
+   > compatibility_date = "2024-07-24"
+   > 
+   > [vars]
+   > ModerateContentApiKey = "your_key"
+   > AllowRandom = "true"
+   > BASIC_USER = "user"
+   > BASIC_PASS = "pass"
+   > TG_BOT_TOKEN = "your_bot_token"
+   > TG_CHAT_ID = "your_bot_id"
+   > ```
 
-10、新增后台图片预览功能
-当开启图片管理功能后，可在后台预览通过你的域名加载过的图片，点击图片可以进行放大，缩小，旋转等操作
+4. 在项目根目录下运行`npm run start`，至此，正常情况下项目已经成功部署。
 
-![](https://im.gurl.eu.org/file/740cd5a69672de36133a2.png)
+   程序默认运行在`8080`端口上，使用`nginx`等服务器反代`127.0.0.1:8080`即可外网访问服务。如需修改端口，可在`package.json`中修改`start`脚本的`port`参数（如下图）。
 
-## 已经部署了的，如何更新？
+   ![](https://alist.sanyue.site/d/imgbed/202408191832173.png)
 
-其实更新非常简单，只需要参照上面的更新内容，先进入到 Cloudflare Pages 后台，把需要使用的环境变量提前设置好并绑定上 KV 命名空间，然后去到 Github 你之前 fork 过的仓库依次选择`Sync fork`->`Update branch`即可，稍等一会，Cloudflare Pages 那边检测到你的仓库更新了之后就会自动部署最新的代码了
+   正常启动，控制台输出如下：
 
-## 一些限制：
+   ![202408191829163](https://alist.sanyue.site/d/imgbed/202408191855625.png)
 
-Cloudflare KV 每天只有 1000 次的免费写入额度，每有一张新的图片加载都会占用该写入额度，如果超过该额度，图片管理后台将无法记录新加载的图片
+#### 3.1.3后台管理认证
 
-每天最多 100,000 次免费读取操作，图片每加载一次都会占用该额度（在没有缓存的情况下，如果你的域名在 Cloudflare 开启了缓存，当缓存未命中时才会占用该额度），超过黑白名单等功能可能会失效
+后台管理页面默认**不设密码**，需按照如下方式**设置认证**：
 
-每天最多 1,000 次免费删除操作，每有一条图片记录都会占用该额度，超过将无法删除图片记录
+1. **配置管理员认证**：
+   - 项目对应`设置`->`环境变量`->`为生产环境定义变量`->`编辑变量` ，添加`BASIC_USER`作为管理员用户名，`BASIC_PASS`作为管理员登录密码
 
-每天最多 1,000 次免费列出操作，每打开或刷新一次后台/admin 都会占用该额度，超过将进行后台图片管理
+2. **重新部署项目**：
 
-绝大多数情况下，该免费额度都基本够用，并且可以稍微超出一点，不是已超出就立马停用，且每项额度单独计算，某项操作超出免费额度后只会停用该项操作，不影响其他的功能，即即便我的免费写入额度用完了，我的读写功能不受影响，图片能够正常加载，只是不能在图片管理后台看到新的图片了。
+   - 进入项目对应`部署`->`所有部署`，选择最新的一个，点击后面更多按钮（`···`），选择`重试部署`
 
-如果你的免费额度不够用，可以自行向 Cloudflare 购买 Cloudflare Workers 的付费版本，每月$5 起步，按量收费，没有上述额度限制
+   - 部署完成后，访问`http(s)://你的域名/dashboard`即可进入后台管理页面
 
-另外针对环境变量所做的更改将在下次部署时生效，如更改了`环境变量`，针对某项功能进行了开启或关闭，请记得重新部署。
+#### 3.1.4图片审查
 
-![](https://im.gurl.eu.org/file/b514467a4b3be0567a76f.png)
+支持成人内容审查和自动屏蔽，开启步骤如下：
 
-### Sponsorship
+- 前往https://moderatecontent.com/ 注册并获得一个免费的用于审查图像内容的 API key
+- 打开 Cloudflare Pages 项目的管理页面，依次点击`设置`，`环境变量`，`添加环境变量`
+- 添加一个`变量名称`为`ModerateContentApiKey`，`值`为第一步获得的`API key`，点击`保存`即可
 
-This project is tested with BrowserStack.
+#### 3.1.5Web和API上传认证
 
-This project is support by [Cloudflare](https://www.cloudflare.com/).
+环境变量增加认证码`AUTH_CODE`，值为你想要设置的认证码。
+
+Web端在登录页面输入你的**认证码**即可登录使用。
+
+API格式：
+
+| 接口名称     | /upload                                                      |
+| ------------ | ------------------------------------------------------------ |
+| **接口功能** | 上传图片或视频                                               |
+| **请求方法** | POST                                                         |
+| **请求参数** | **Query参数**：<br />`authCode`，string类型，即为你设置的认证码<br />`serverCompress`，boolean类型，表示是否开启服务端压缩（仅针对图片文件生效）<br />**Body参数(application/form-data)**：<br />`file`，file类型，你要上传的文件 |
+| **返回响应** | `data[0].src`为获得的图片链接（注意不包含域名，需要自己添加） |
+
+> **请求示例**：
+>
+> ```bash
+> curl --location --request POST 'https://your.domain/upload?authCode=your_authCode' \
+> 
+> --header 'User-Agent: Apifox/1.0.0 (https://apifox.com)' \
+> 
+> --form 'file=@"D:\\杂文件\\壁纸\\genshin109.jpg"'
+> ```
+>
+> **响应示例**：
+>
+> ```json
+> [
+>     {
+>         "src": "/file/738a8aaacf4d88d1590f9.jpg"
+>     }
+> ]
+> ```
+
+#### 3.1.6访问域名限制
+
+环境变量增加`ALLOWED_DOMAINS`，多个允许的域名用英文`,`分割，如：`域名.xyz,域名.cloudns.be,域名.pp.ua`
+
+#### 3.1.7白名单模式
+
+环境变量增加`WhiteList_Mode`，设置为`true`即可开启白名单模式，仅设置为白名单的图片可被访问。
+
+#### 3.1.8页面自定义（DIY接口）
+
+环境变量增加`USER_CONFIG`，JSON格式，具体字段用途及内容规范见下表。
+
+| 字段名      | 用途                 | 类型          | 内容规范                                                     |
+| ----------- | -------------------- | ------------- | ------------------------------------------------------------ |
+| loginBkImg  | 自定义登录页面背景   | 列表/字符串   | 1、当字段类型为`列表`时，列表中元素为需要添加到轮播列表中的图片链接（列表中只有一张图时即为固定背景），形如`["1.jpg","2.jpg"]`<br />2、当字段类型为`字符串`时，目前**仅支持**字符串值为`bing`，设置为该值时启用bing随机图片轮播模式。 |
+| uploadBkImg | 自定义上传页面背景   | 列表/字符串   | 同上                                                         |
+| bkInterval  | 轮播背景切换时间间隔 | 正整数        | 设置为背景图的轮播时间，默认`3000`，单位`ms`。<br />例如你希望10s切换一次，设置为`10000`即可。 |
+| bkOpacity   | 背景图透明度         | (0,1]的浮点数 | 展示的背景图透明度，默认为`1`。<br />如果你觉得显示效果不佳，可以自定义，如`0.8` |
+| ownerName   | 页内图床名称         | 字符串        | 只支持`字符串`类型，设置为你自定义的图床名称（默认为`Sanyue`） |
+| logoUrl     | 页内图床Logo         | 字符串        | 只支持`字符串`类型，设置为你自定义的图床Logo链接             |
+| siteTitle   | 网站标题             | 字符串        | 只支持`字符串`类型，设置为你自定义的网站标题                 |
+| siteIcon    | 网站图标             | 字符串        | 只支持`字符串`类型，设置为你自定义的网站图标链接             |
+| footerLink  | 页脚传送门链接       | 字符串        | 只支持`字符串`类型，设置为你自定义的传送地址（如个人博客链接） |
+
+> 整体示例：
+>
+> ```json
+> 轮播模式：
+> {
+> "uploadBkImg": ["https://imgbed.sanyue.site/file/6910f0b5e65ed462c1362.jpg","https://imgbed.sanyue.site/file/a73c97a1e8149114dc750.jpg"],
+> "loginBkImg":["https://imgbed.sanyue.site/file/ef803977f35a4ef4c03c2.jpg","https://imgbed.sanyue.site/file/0dbd5add3605a0b2e8994.jpg"],
+> "ownerName": "Sanyue",
+> "logoUrl": "https://demo-cloudflare-imgbed.pages.dev/random?type=img"
+> }
+> bing随机图模式：
+> {
+> "uploadBkImg": "bing",
+> "loginBkImg": "bing"
+> }
+> ```
+
+#### 3.1.9远端遥测
+
+便于开发者进行bug的捕捉和定位，但是**过程中可能收集到访问链接、域名等信息**，如您不愿意泄露类似信息给项目开发者，可在环境变量中添加`disable_telemetry`为`true`来退出遥测。
+
+#### 3.1.10随机图API
+
+| 接口名称     | /random                                                      |
+| ------------ | ------------------------------------------------------------ |
+| **接口功能** | 从图床中随机返回一张图片的链接（注意会消耗列出次数）         |
+| **前置条件** | 设置`AllowRandom`环境变量，值为`true`                        |
+| **请求方法** | GET                                                          |
+| **请求参数** | **Query参数**：<br />`type`：设为`img`时直接返回图片（此时form不生效）；设为`url`时返回完整url链接；否则返回随机图的文件路径。<br />`form`:设为`text`时直接返回文本，否则返回json格式内容。 |
+| **响应格式** | 1、当`type`为`img`时：<br />返回格式为`image/jpeg`<br />2、当`type`为其他值时：<br />当`form`不是`text`时，返回JSON格式内容，`data.url`为返回的链接/文件路径。<br />否则，直接返回链接/文件路径。 |
+
+> **请求示例**：
+>
+> ```bash
+> curl --location --request GET 'https://your.domain/random' \
+> --header 'User-Agent: Apifox/1.0.0 (https://apifox.com)'
+> ```
+>
+> **响应示例**：
+>
+> ```json
+> {
+>     "url": "/file/4fab4d423d039b4665a27.jpg"
+> }
+> ```
+
+#### 3.1.11注意！！！
+
+**修改环境变量方式**：
+
+![](https://alist.sanyue.site/d/imgbed/202408261040233.png)
+
+**修改环境变量后需要重新部署才能生效！**
+
+![](https://alist.sanyue.site/d/imgbed/202408261041507.png)
+
+**更新方式**：
+
+去到 Github 你之前 fork 过的仓库依次选择`Sync fork`->`Update branch`即可，稍等一会，Cloudflare Pages 检测到仓库更新之后便会自动部署最新代码。
+
+如果有新的环境变量需要添加，请根据文档要求进行添加，然后重试部署。
+
+![](https://alist.sanyue.site/d/imgbed/202409161736365.png)
+
+### 3.2定制化修改
+
+按照`3.1`步骤部署完成后，前往仓库[MarSeventh/Sanyue-ImgHub](https://github.com/MarSeventh/Sanyue-ImgHub?tab=readme-ov-file)，按照操作说明进行DIY和打包操作，最后将打包好的`/dist`目录中的内容替换到该仓库的根目录下即可（复制+替换）。
+
+## 4.TODO
+
+### 4.1Add Features💕
+
+1. ~~增加粘贴图片上传功能~~（2024.7.22已完成）
+2. ~~增加markdown、html等格式链接复制功能~~（2024.7.21已完成）
+3. ~~上传页面增加管理端入口~~（2024.7.21已完成）
+4. 增加用户个性化配置接口
+   - ~~登录页面和上传页面背景图自定义~~（2024.8.25已完成）
+   - ~~图床名称和Logo自定义~~（2024.8.26已完成）
+   - ~~网站标题和Icon自定义~~（2024.8.26已完成）
+   - ~~背景切换时间自定义~~（2024.9.11已完成）
+   - ~~背景透明度支持自定义~~（2024.9.12已完成）
+   - ~~页脚自定义传送门~~（2024.10.20已完成）
+5. ~~增加随机图API~~（2024.7.25已完成）
+6. ~~完善多格式链接展示形式，增加ubb格式链接支持~~（2024.8.21已完成）
+7. ~~完善登录逻辑，后端增加认证码校验接口~~（2024.8.21已完成）
+8. ~~支持URL粘贴上传~~（2024.8.23已完成）
+9. ~~支持大于5MB的图片上传前自动压缩~~（2024.8.26已完成）
+10. ~~上传页面右下角工具栏样式重构，支持上传页自定义压缩（上传前+存储端）~~（2024.9.28已完成）
+11. 重构管理端，认证+显示效果优化，增加图片详情页
+12. 管理端增加访问量统计，IP记录、IP黑名单等
+13. ~~上传页面点击链接，自动复制到剪切板~~(2024.9.27已完成)
+14. ~~上传设置记忆（上传方式、链接格式等）~~（2024.9.27已完成，**两种上传方式合并**）
+15. ~~若未设置密码，无需跳转进入登录页~~（2024.9.27已完成）
+16. ~~增加仅删除上传成功图片、上传失败图片重试~~（2024.9.28已完成）
+17. ~~优化粘贴上传时文件命名方法~~（2024.9.26已完成）
+18. 增加对R2 bucket的支持
+
+### 4.2Fix Bugs👻
+
+1. ~~修复API上传无法直接展示在后台的问题~~（2024.7.25已修复）
+1. ~~由于telegra.ph关闭上传，迁移至TG频道上传~~（2024.9.7已修复）
+1. ~~修复未设管理员认证时管理端无限刷新的问题~~（2024.9.9已修复）
+
+## 5.Q&A
+
+### 5.1未设置`ALLOWED_DOMAINS`，但无法跨域访问？
+
+- 请检查你的cloudflare防火墙设置（例如hotlink保护是否开启）
+- 参见[Issue #8](https://github.com/MarSeventh/CloudFlare-ImgBed/issues/8)
+
+### 5.2如何通过PicGo上传？
+
+- PicGo插件设置中搜索`web-uploader`，安装可自定义前缀的版本，如图：
+
+  ![](https://alist.sanyue.site/d/imgbed/202408231141491.png)
+
+- 打开`图床设置`->`自定义Web图床`->`Default`，然后按照下图方式配置，注意API地址和自定义图片URL前缀按照自己的域名进行修改。（**如果设置了`AUTH_CODE`，一定以`?authCode=your_authCode`的方式添加到API地址后面**）：
+
+  ![](https://alist.sanyue.site/d/imgbed/202408261959174.png)
+
+- 设置完成，确定即可使用PicGo上传到自建的图床。
+
+### 5.3上传失败怎么办？
+
+- 是否正确配置`TG_BOT_TOKEN`、`TG_CHAT_ID`等环境变量
+- 是否给机器人管理员配置**足够的权限**
+- 是否**正确绑定KV数据库**
+- 是否更新至**最新版**
+- 前往issues寻找相似问题
+
+### 5.4`TG_CHAT_ID`前面有没有`-`
+
+- 注意看图，前面有`-`
+
+### 5.5进入后台页面加载不出记录或图片
+
+- 网络问题，尝试刷新页面
+
+## 6.Tips
+
+前端开源，参见[MarSeventh/Sanyue-ImgHub](https://github.com/MarSeventh/Sanyue-ImgHub)项目。
+
+**如果觉得项目不错希望您能给个免费的star✨✨✨，非常感谢！**
+
+## 7.Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MarSeventh/CloudFlare-ImgBed,MarSeventh/Sanyue-ImgHub&type=Date)](https://star-history.com/#MarSeventh/CloudFlare-ImgBed&MarSeventh/Sanyue-ImgHub&Date)
