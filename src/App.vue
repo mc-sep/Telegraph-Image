@@ -15,7 +15,7 @@ export default {
   },
   methods: {
     setSiteTitle() {
-      document.title = this.userConfig?.siteTitle || 'Sanyue ImgHub'
+      document.title = this.userConfig?.siteTitle || 'MC-Sep Free Imgbed'
     },
     setSiteIcon() {
       const link = document.createElement('link')

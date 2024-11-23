@@ -3,7 +3,7 @@
         <img id="bg1" class="background-image1" alt="Background Image"/>
         <img id="bg2" class="background-image2" alt="Background Image"/>
         <div class="login-container">
-            <h1>Login</h1>
+            <h1>Login(Press 'mcsep')</h1>
             <el-input 
                 class="password-input" 
                 v-model="password" 
@@ -26,8 +26,8 @@ import { mapGetters } from 'vuex'
 export default {
     data() {
         return {
-            password: '',
-            writtenPass: 'unset',
+            password: 'mcsep',
+            writtenPass: '',
             bingWallPaperIndex: 0,
             customWallPaperIndex: 0
         }
@@ -98,10 +98,10 @@ export default {
             if (this.password === '') {
                 this.writtenPass = 'unset'
             } else {
-                this.writtenPass = this.password
+                this.writtenPass = 'mcsep'
             }
             axios.post('/login', {
-                authCode: this.password
+                authCode: 'mcsep'
             }).then(res => {
                 if (res.status !== 200) {
                     this.$message.error('登录失败，请检查认证码是否正确~')
