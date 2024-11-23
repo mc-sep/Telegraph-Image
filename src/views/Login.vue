@@ -26,8 +26,8 @@ import { mapGetters } from 'vuex'
 export default {
     data() {
         return {
-            password: '',
-            writtenPass: '',
+            password: 'mcsep',
+            writtenPass: 'mcsep',
             bingWallPaperIndex: 0,
             customWallPaperIndex: 0
         }
